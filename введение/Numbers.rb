@@ -31,31 +31,31 @@ end
   # count
 # end
 
-# Метод для нахождения произведения таких делителей числа, сумма цифр которых меньше, чем сумма цифр исходного числа
-def product_of_special_divisors(n)
-  sum_digits_of_n = sum_of_digits(n)
-  product = 1
-  has_divisors = false
+# # Метод для нахождения произведения таких делителей числа, сумма цифр которых меньше, чем сумма цифр исходного числа
+# def product_of_special_divisors(n)
+  # sum_digits_of_n = sum_of_digits(n)
+  # product = 1
+  # has_divisors = false
 
-  for i in 1..n
-    if n % i == 0 && sum_of_digits(i) < sum_digits_of_n
-      product *= i
-      has_divisors = true
-    end
-  end
+  # for i in 1..n
+    # if n % i == 0 && sum_of_digits(i) < sum_digits_of_n
+      # product *= i
+      # has_divisors = true
+    # end
+  # end
 
-  has_divisors ? product : 0
-end
+  # has_divisors ? product : 0
+# end
 
 # # Метод для нахождения суммы цифр числа
-# def sum_of_digits(num)
-  # sum = 0
-  # num_str = num.to_s
-  # for i in 0...num_str.length
-    # sum += num_str[i].to_i
-  # end
-  # sum
-# end
+def sum_of_digits(num)
+  sum = 0
+  num_str = num.to_s
+  for i in 0...num_str.length
+    sum += num_str[i].to_i
+  end
+  sum
+end
 
 # puts "Введите число:"
 # number = gets.to_i
