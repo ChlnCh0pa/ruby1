@@ -32,6 +32,21 @@ def max_el(array)
   end
 end
 
+def num_first(array)
+  # Проверка, что массив не пуст
+  if array.empty?
+    puts "массив пуст"
+  else
+    index = 0
+    while index < array.length
+      if array[index] >= 0
+        return index + 1  
+      end
+      index += 1
+    end
+    "В массиве нет положительных элементов"
+  end
+end
 
 
 
@@ -43,6 +58,7 @@ else
   puts "Введите номер метода для работы со списком:"
   puts "1 Найти минимальный элемент"
   puts "2 Найти максимальный элемент"
+  puts "3 Найти первый положительный элемент"
   number_of_method = gets.chomp.to_i
   puts "Введите путь к файлу:"
   filepath_of_array = gets.chomp
@@ -56,6 +72,9 @@ def chois(num_method, array)
       puts "Минимальный элемент списка: #{min_el(array)}"
     elsif num_method == 2
       puts "Максимальный элемент списка: #{max_el(array)}"
+    elsif num_method == 3
+      puts "Первый положительный элемент списка: #{num_first(array)}"
+    else
       puts "Выбранного метода нет!1!1!1!1!"
     end
   end
