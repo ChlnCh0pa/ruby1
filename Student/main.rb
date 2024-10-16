@@ -40,12 +40,13 @@ def display_student_info(student)
   puts "Фамилия: #{student.last_name}"
   puts "Имя: #{student.first_name}"
   puts "Отчество: #{student.middle_name}"
-  puts "Телефон: #{student.phone}"
+  puts "Телефон: #{student.phone}"  # Теперь этот вызов будет работать
   puts "Телеграм: #{student.telegram}"
   puts "Почта: #{student.email}"
   puts "Гит: #{student.git}"
   puts "-" * 20
 end
+
 
 # Вывод информации о каждом студенте
 display_student_info(student_Afganiy)
