@@ -9,7 +9,7 @@ student_Afganiy = Student.new(
   phone: '+79186999560',
   telegram: '@afganiyniy',
   email: 'afganiy@mail.com',
-  git: 'https://github.com/afganiy/repo'  # Добавлен полный URL
+  git: 'https://github.com/afganiy/repo'
 )
 
 student_Leman = Student.new(
@@ -20,7 +20,7 @@ student_Leman = Student.new(
   phone: '+79123456789',
   telegram: '@lemanz',
   email: nil,
-  git: 'https://github.com/prospero/repo'  # Добавлен полный URL
+  git: 'https://github.com/prospero/repo'
 )
 
 student_Sangviniy = Student.new(
@@ -31,7 +31,7 @@ student_Sangviniy = Student.new(
   phone: '+79186999560',
   telegram: '@obidno',
   email: nil,
-  git: 'https://github.com/imperovich/repo'  # Добавлен полный URL
+  git: 'https://github.com/imperovich/repo'
 )
 
 # Метод для вывода информации о студенте
