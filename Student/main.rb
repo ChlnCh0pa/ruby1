@@ -2,36 +2,36 @@ require_relative 'student'
 
 # Создание объектов класса Student
 student_Afganiy = Student.new(
-  '001',
-  'Afganiy',
-  'Oleg',
-  'Ivanovich',
-  '+79186999560',
-  '@afganiyniy',
-  'afganiy@mail.com',
-  'github.com/afganiy'
+  id: '001',
+  last_name: 'Afganiy',
+  first_name: 'Oleg',
+  middle_name: 'Ivanovich',
+  phone: '+79186999560',
+  telegram: '@afganiyniy',
+  email: 'afganiy@mail.com',
+  git: 'https://github.com/afganiy/repo'  # Добавлен полный URL
 )
 
 student_Leman = Student.new(
-  '002',
-  'Leman',
-  'Russ',
-  'Petrovich',
-  '+79123456789',
-  '@lemanz',
-  nil,
-  'github.com/prospero'
+  id: '002',
+  last_name: 'Leman',
+  first_name: 'Russ',
+  middle_name: 'Petrovich',
+  phone: '+79123456789',
+  telegram: '@lemanz',
+  email: nil,
+  git: 'https://github.com/prospero/repo'  # Добавлен полный URL
 )
 
 student_Sangviniy = Student.new(
-  '003',
-  'Sangviniy',
-  'Sasha',
-  'Imperovich',
-  '+79186999560',
-  '@obidno',
-  nil,
-  'github.com/imperovich'
+  id: '003',
+  last_name: 'Sangviniy',
+  first_name: 'Sasha',
+  middle_name: 'Imperovich',
+  phone: '+79186999560',
+  telegram: '@obidno',
+  email: nil,
+  git: 'https://github.com/imperovich/repo'  # Добавлен полный URL
 )
 
 # Метод для вывода информации о студенте
