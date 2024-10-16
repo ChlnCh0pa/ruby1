@@ -1,13 +1,13 @@
-# Метод для нахождения суммы простых делителей числаf
-def sum_of_prime_divisors(n)
-  sum = 0
-  for i in 2..n
-    if n % i == 0 && prime?(i)
-      sum += i
-    end
-  end
-  sum
-end
+# # Метод для нахождения суммы простых делителей числаf
+# def sum_of_prime_divisors(n)
+  # sum = 0
+  # for i in 2..n
+    # if n % i == 0 && prime?(i)
+      # sum += i
+    # end
+  # end
+  # sum
+# end
 
  # Метод для проверки, является ли число простым
 def prime?(num)
@@ -18,18 +18,18 @@ def prime?(num)
   true
 end 
 
-# # Метод для нахождения количества нечетных цифр числа, больших 3
-# def odd_digits_greater_than_3_count(n)
-  # count = 0
-  # n_str = n.to_s
-  # for i in 0...n_str.length
-    # digit = n_str[i].to_i
-    # if digit.odd? && digit > 3
-      # count += 1
-    # end
-  # end
-  # count
-# end
+# Метод для нахождения количества нечетных цифр числа, больших 3
+def odd_digits_greater_than_3_count(n)
+  count = 0
+  n_str = n.to_s
+  for i in 0...n_str.length
+    digit = n_str[i].to_i
+    if digit.odd? && digit > 3
+      count += 1
+    end
+  end
+  count
+end
 
 # # Метод для нахождения произведения таких делителей числа, сумма цифр которых меньше, чем сумма цифр исходного числа
 # def product_of_special_divisors(n)
