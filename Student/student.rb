@@ -10,6 +10,7 @@ class Student
 
     # Set contact information based on provided values
     set_contact_info(**contacts)
+    validate  # Вызов метода валидации в конструкторе
   end
 
   # Method to set contact information
@@ -18,6 +19,22 @@ class Student
     self.telegram = telegram if telegram
     self.git = git if git
     self.email = email if email
+  end
+
+  # Method to validate student information
+  def validate
+    validate_git_presence
+    validate_contact_presence
+  end
+
+  # Validation for Git presence
+  def validate_git_presence
+    raise ArgumentError, 'GitHub URL must be present' if git.nil? || git.strip.empty?
+  end
+
+  # Validation for at least one contact presence
+  def validate_contact_presence
+    raise ArgumentError, 'At least one contact (phone, telegram, email) must be present' if phone.nil? && telegram.nil? && email.nil?
   end
 
   # Class method to check if a string is a valid phone number
@@ -67,7 +84,7 @@ class Student
 
   # Validation for email format
   def valid_email?(email)
-    email.match?(/^[\w+_.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$/) # исправлено
+    email.match?(/^[\w+_.-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$/)
   end
 
   # Validation for GitHub URL format
