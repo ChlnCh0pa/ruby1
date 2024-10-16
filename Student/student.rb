@@ -7,6 +7,8 @@ class Student
     @last_name = last_name
     @first_name = first_name
     @middle_name = middle_name
+
+    # Set contact information based on provided values
     set_contact_info(**contacts)
   end
 
