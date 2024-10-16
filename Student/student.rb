@@ -1,19 +1,20 @@
 class Student
-  attr_reader :id, :first_name, :last_name, :middle_name, :git, :phone, :telegram, :email
+  attr_reader :id, :first_name, :last_name, :middle_name
+  attr_accessor :phone, :telegram, :email, :git
 
-  def initialize(id, last_name, first_name, middle_name = nil, contacts = {})
+  def initialize(id, last_name, first_name, middle_name = nil, **contacts)
     @id = id
     @last_name = last_name
     @first_name = first_name
     @middle_name = middle_name
-    set_contact_info(contacts)
+    set_contact_info(**contacts)
   end
 
-  # Метод для установки контактной информации
-  def set_contact_info(contacts = {})
-    @phone = contacts[:phone] if contacts[:phone]
-    @telegram = contacts[:telegram] if contacts[:telegram]
-    @github = contacts[:git] if contacts[:git]
-    @email = contacts[:email] if contacts[:email]
+  # Method to set contact information
+  def set_contact_info(phone: nil, telegram: nil, email: nil, git: nil)
+    self.phone = phone if phone
+    self.telegram = telegram if telegram
+    self.git = git if git
+    self.email = email if email
   end
 end
