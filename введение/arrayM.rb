@@ -1,7 +1,7 @@
 def min_el(array)
   # Проверка, что массив не пуст
   if array.empty?
-    puts "массив пуст"
+    return nil
   else
     min_el = array[0]
     index = 1
@@ -18,7 +18,7 @@ end
 def max_el(array)
   # Проверка, что массив не пуст
   if array.empty?
-    puts "массив пуст"
+    return nil
   else
     max_el = array[0]
     index = 1
@@ -35,7 +35,7 @@ end
 def num_first(array)
   # Проверка, что массив не пуст
   if array.empty?
-    puts "массив пуст"
+    return nil
   else
     index = 0
     while index < array.length
@@ -66,7 +66,7 @@ end
 
 def chois(num_method, array)
   if array.empty?
-    puts "Массив пуст (проверьте доступ к файлу или целостность содержимого)"
+   return nil
   else
     if num_method == 1
       puts "Минимальный элемент списка: #{min_el(array)}"
