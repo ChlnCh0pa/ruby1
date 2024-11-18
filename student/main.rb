@@ -20,6 +20,7 @@ student2 = Student.new(
   git: 'github.com/bulba',
   telegram: '@sumkin'
 )
+student2.update_contacts(telegram: '@sumkin_Z')
 
 puts student1
 puts student2

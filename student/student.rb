@@ -11,6 +11,11 @@ class Student
     @id = id
     @phone = phone
   end
+  
+def update_contacts(phone: nil, telegram: nil)
+@phone = phone if phone
+@telegram = telegram if telegram
+end
 
   def to_s
     "Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@email}\nGit: #{@git}\nТелефон: #{@phone}\nTelegram: #{@telegram}\n----------"
