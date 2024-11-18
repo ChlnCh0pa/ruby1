@@ -21,4 +21,5 @@ student2 = Student.new(
   telegram: '@sumkin'
 )
 
-
+puts student1
+puts student2

@@ -1,14 +1,18 @@
 class Student
-attr_accessor :name, :surname, :patronymic, :emai:, :git, :telegram, :id, :phone
-def initialize(name:, surname:, patronymic:, email:, git:, telegram: nil, id: nil, phone: nil) 
+  attr_accessor :name, :surname, :patronymic, :email, :git, :telegram, :id, :phone
 
-@name = name
-@surname = surname
-@patronymic = patronymic
-@emai = email
-@git = git
-@telegram = telegram
-@id = id
-@phone = phone
-end
+  def initialize(name:, surname:, patronymic:, email:, git:, telegram: nil, id: nil, phone: nil)
+    @name = name
+    @surname = surname
+    @patronymic = patronymic
+    @email = email
+    @git = git
+    @telegram = telegram
+    @id = id
+    @phone = phone
+  end
+
+  def to_s
+    "Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@email}\nGit: #{@git}\nТелефон: #{@phone}\nTelegram: #{@telegram}\n----------"
+  end
 end
