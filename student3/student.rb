@@ -77,7 +77,9 @@ def id=(value)
 @id = value
 end
 
-
+def to_s
+"Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@email}\nGit: #{@git}\nТелефон: #{@phone}\nTelegram: #{@telegram}\n----------"
+  end
 
  
 end
