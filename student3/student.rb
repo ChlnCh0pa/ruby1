@@ -1,12 +1,22 @@
 class Student
-  attr_accessor :name, :surname, :patronymic, :git, :email, :phone, :telegram
-  attr_reader :id
+  attr_accessor :name, :surname, :patronymic, :git, :email
+  attr_reader :id, :phone,:telegram
 
   PHONE_REGEX = /^\+\d{11}$/
   NAME_REGEX = /^[A-Za-zА-Яа-я]+$/
   EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   GIT_REGEX = /^https:\/\/github\.com\/\w+$/
   TELEGRAM_REGEX = /^@\w+$/
+
+  FIELD_VALIDATORS = {
+    name: :valid_name?,
+    surname: :valid_name?,
+    patronymic: :valid_name?,
+    email: :valid_email?,
+    git: :valid_git?,
+    phone: :valid_phone?,
+    telegram: :valid_telegram?
+  }
 
   def self.valid_phone?(phone)
     phone.match?(PHONE_REGEX)
@@ -28,16 +38,6 @@ class Student
     telegram.match?(TELEGRAM_REGEX)
   end
 
-  FIELD_VALIDATORS = {
-    name: :valid_name?,
-    surname: :valid_name?,
-    patronymic: :valid_name?,
-    email: :valid_email?,
-    git: :valid_git?,
-    phone: :valid_phone?,
-    telegram: :valid_telegram?
-  }
-
   def initialize(attributes = {})
     @name = attributes[:name]
     @surname = attributes[:surname]
@@ -46,17 +46,27 @@ class Student
     @telegram = attributes[:telegram]
     @id = attributes[:id]
     @phone = attributes[:phone]
-    @email = attributes[:email]
+    @contacts = { email: attributes[:email], phone: attributes[:phone], telegram: attributes[:telegram] }
     validate_fields
+    validate
+  end
+  
+   def set_contacts(contacts)
+    @contacts[:email] = contacts[:email] if contacts[:email]
+    @contacts[:phone] = contacts[:phone] if contacts[:phone]
+    @contacts[:telegram] = contacts[:telegram] if contacts[:telegram]
+    validate_contact_presence
   end
 
   def to_s
-    "Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@email}\nGit: #{@git}\nТелефон: #{@phone}\nTelegram: #{@telegram}\n----------"
+    "Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@contacts[:email]}\nGit: #{@git}\nТелефон: #{@contacts[:phone]}\nTelegram: #{@contacts[:telegram]}\n----------"
   end
+
+ 
 
   private
   def validate_fields
-    FIELD_VALIDATORS.each do |field, method|
+    self.class::FIELD_VALIDATORS.each do |field, method|
       validate_field(field, method)
     end
   end
@@ -64,7 +74,24 @@ class Student
   def validate_field(field, validation_method)
     value = instance_variable_get("@#{field}")
     if value && !self.class.send(validation_method, value)
-      raise ArgumentError, "Invalid #{field}: #{value}"
+      raise ArgumentError, "Ошибка: #{field}: #{value}"
+    end
+  end
+
+  def validate
+    validate_git_presence
+    validate_contact_presence
+  end
+
+  def validate_git_presence
+    if @git.nil? || @git.empty?
+      raise ArgumentError, "Git обязателен"
+    end
+  end
+
+  def validate_contact_presence
+    if @contacts[:email].nil? && @contacts[:phone].nil? && @contacts[:telegram].nil?
+      raise ArgumentError, "Необходим хотя бы один способ связи"
     end
   end
 end
