@@ -1,5 +1,8 @@
+require_relative 'base_student'
 require_relative 'student'
+require_relative 'student_short'
 
+# Создание объектов студентов
 student1 = Student.new(
   id: '1',
   name: 'Leman',
@@ -20,18 +23,14 @@ student2 = Student.new(
   git: 'https://github.com/bulba',
   telegram: '@sumkin'
 )
-# student3_data = "3, Agronom, Agropromovich, Dunedain, https://github.com/elessar, agronomexample.com, +79991234567, @deunedain_agropmrop"
-# student3 = Student.from_string(student3_data)
 
-# Вывод объектов
+student_short_info = "Agronom Agropromovich Dunedain; https://github.com/elessar; agronome@rivendel.com, +79991234567, @deunedain_agropmrop"
 
-# begin
-# puts student1.to_s
-# rescue => e
-  # puts e.message
-# end
+student_short_from_info = StudentShort.new(nil, 3, student_short_info)
 
-puts student1
-puts student2
+
+puts student1.to_s
+puts student2.to_s
 puts student1.get_info
 puts student2.get_info
+puts student_short_from_info.to_s
