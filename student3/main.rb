@@ -2,7 +2,7 @@ require_relative 'base_student'
 require_relative 'student'
 require_relative 'student_short'
 
-# Создание объектов студентов
+
 student1 = Student.new(
   id: '1',
   name: 'Leman',
