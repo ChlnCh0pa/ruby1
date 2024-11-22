@@ -1,6 +1,6 @@
 class Student
   attr_accessor :name, :surname, :patronymic, :git, :email
-  attr_reader :id, :phone,:telegram
+  attr_reader :id, :phone, :telegram
 
   PHONE_REGEX = /^\+\d{11}$/
   NAME_REGEX = /^[A-Za-zА-Яа-я]+$/
@@ -39,19 +39,24 @@ class Student
   end
 
   def initialize(attributes = {})
+    @id = attributes[:id]
     @name = attributes[:name]
     @surname = attributes[:surname]
     @patronymic = attributes[:patronymic]
     @git = attributes[:git]
-    @telegram = attributes[:telegram]
-    @id = attributes[:id]
     @phone = attributes[:phone]
-    @contacts = { email: attributes[:email], phone: attributes[:phone], telegram: attributes[:telegram] }
+    @telegram = attributes[:telegram]
+    @contacts = {
+      email: attributes[:email],
+      phone: attributes[:phone],
+      telegram: attributes[:telegram]
+    }
+    @contacts[:email] &&= attributes[:email]
     validate_fields
     validate
   end
-  
-   def set_contacts(contacts)
+
+  def set_contacts(contacts)
     @contacts[:email] = contacts[:email] if contacts[:email]
     @contacts[:phone] = contacts[:phone] if contacts[:phone]
     @contacts[:telegram] = contacts[:telegram] if contacts[:telegram]
@@ -62,9 +67,32 @@ class Student
     "Студент\nID: #{@id}\nИмя: #{@name}\nФамилия: #{@surname}\nОтчество: #{@patronymic}\nEmail: #{@contacts[:email]}\nGit: #{@git}\nТелефон: #{@contacts[:phone]}\nTelegram: #{@contacts[:telegram]}\n----------"
   end
 
- 
+  def get_info
+    "#{surname} #{name[0]}. #{patronymic[0]}.; Git: #{@git}; Контакт: #{contact_info}"
+  end
+
+  def surname_and_initials
+    "#{surname} #{name[0]}. #{patronymic[0]}."
+  end
+
+  def git_info
+    @git
+  end
+
+  def contact_info
+    if @contacts[:email]
+      "Email: #{@contacts[:email]}"
+    elsif @contacts[:phone]
+      "Phone: #{@contacts[:phone]}"
+    elsif @contacts[:telegram]
+      "Telegram: #{@contacts[:telegram]}"
+    else
+      "Нет контакта"
+    end
+  end
 
   private
+
   def validate_fields
     self.class::FIELD_VALIDATORS.each do |field, method|
       validate_field(field, method)
@@ -72,7 +100,7 @@ class Student
   end
 
   def validate_field(field, validation_method)
-    value = instance_variable_get("@#{field}")
+    value = field == :email ? @contacts[:email] : instance_variable_get("@#{field}")
     if value && !self.class.send(validation_method, value)
       raise ArgumentError, "Ошибка: #{field}: #{value}"
     end
