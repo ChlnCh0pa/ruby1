@@ -1,68 +1,36 @@
 class BaseStudent
-  attr_reader :id, :surname_and_initials, :git, :contact
+  attr_reader :id, :surname_and_initials, :git, :contact, :email
 
-  PHONE_REGEX = /^\+\d{11}$/
-  NAME_REGEX = /^[A-Za-zА-Яа-я]+$/
-  EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
-  GIT_REGEX = /^https:\/\/github\.com\/\w+$/
-  TELEGRAM_REGEX = /^@\w+$/
-
-  FIELD_VALIDATORS = {
-    name: :valid_name?,
-    surname: :valid_name?,
-    patronymic: :valid_name?,
-    email: :valid_email?,
-    git: :valid_git?,
-    phone: :valid_phone?,
-    telegram: :valid_telegram?
-  }
-
-  def self.valid_phone?(phone)
-    phone.match?(PHONE_REGEX)
+  def initialize(id:, surname_and_initials:, git:, contact: nil, email: nil)
+    @id = id
+    @surname_and_initials = surname_and_initials
+    @git = git
+    @contact = contact
+    @email = email
+  end
+  def surname_and_initials=(value)
+    validate_name(:surname_and_initials, value)
+    @surname_and_initials = value
   end
 
-  def self.valid_name?(name)
-    name.match?(NAME_REGEX)
+  def id=(value)
+    raise ArgumentError, "Неверный ID: #{value}" unless valid_id?(value)
+    @id = value
   end
 
-  def self.valid_email?(email)
-    email.match?(EMAIL_REGEX)
+  def git=(value)
+    raise ArgumentError, "Неверный Git: #{value}" unless valid_git?(value)
+    @git = value
   end
 
-  def self.valid_git?(git)
-    git.match?(GIT_REGEX)
-  end
-
-  def self.valid_telegram?(telegram)
-    telegram.match?(TELEGRAM_REGEX)
-  end
-
-  def initialize(attributes = {})
-    @id = attributes[:id]
-    @git = attributes[:git]
-    @contacts = {
-      email: attributes[:email],
-      phone: attributes[:phone],
-      telegram: attributes[:telegram]
-    }
-    validate_fields
-    validate
-  end
-
-  def set_contacts(contacts)
-    @contacts[:email] = contacts[:email] if contacts[:email]
-    @contacts[:phone] = contacts[:phone] if contacts[:phone]
-    @contacts[:telegram] = contacts[:telegram] if contacts[:telegram]
-    validate_contact_presence
+  def contact=(value)
+    raise ArgumentError, "Неверный контакт: #{value}" unless valid_contact?(value)
+    @contact = value
   end
 
   def contact_info
-    if @contacts[:email]
-      "Email: #{@contacts[:email]}"
-    elsif @contacts[:phone]
-      "Phone: #{@contacts[:phone]}"
-    elsif @contacts[:telegram]
-      "Telegram: #{@contacts[:telegram]}"
+    if @contact
+      "Контакт: #{@contact}"
     else
       "Нет контакта"
     end
@@ -70,40 +38,19 @@ class BaseStudent
 
   private
 
-  def validate_fields
-    self.class::FIELD_VALIDATORS.each do |field, method|
-      validate_field(field, method)
-    end
+  def validate_name(field, value)
+    raise ArgumentError, "Неверное значение для #{field}: #{value}" unless value.match?(/^[А-ЯЁA-Z][а-яёa-z-]+$/)
   end
 
-  def validate_field(field, validation_method)
-   
-    if [:email, :phone, :telegram].include?(field)
-      value = @contacts[field]
-    else
- 
-      value = instance_variable_get("@#{field}")
-    end
-
-    if value && !self.class.send(validation_method, value)
-      raise ArgumentError, "Ошибка: #{field}: #{value}"
-    end
+  def valid_id?(id)
+    id.to_s.match?(/^\d+$/)
   end
 
-  def validate
-    validate_git_presence
-    validate_contact_presence
+  def valid_git?(git)
+    git.match?(/^https:\/\/github\.com\/[\w.-]+$/)
   end
 
-  def validate_git_presence
-    if @git.nil? || @git.empty?
-      raise ArgumentError, "Git обязателен"
-    end
-  end
-
-  def validate_contact_presence
-    if @contacts[:email].nil? && @contacts[:phone].nil? && @contacts[:telegram].nil?
-      raise ArgumentError, "Необходим хотя бы один способ связи"
-    end
+  def valid_contact?(contact)
+    contact.match?(/^[\w+.-]+@[a-z\d.-]+\.[a-z]+$/) || contact.match?(/^\+\d{11}$/) || contact.match?(/^@\w+$/)
   end
 end

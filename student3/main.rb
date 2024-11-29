@@ -33,4 +33,4 @@ puts student1.to_s
 puts student2.to_s
 puts student1.get_info
 puts student2.get_info
-puts student_short_from_info.to_s
+puts student_short_from_info.to_s   
