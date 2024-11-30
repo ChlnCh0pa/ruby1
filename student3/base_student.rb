@@ -5,7 +5,7 @@ class BaseStudent
     self.surname = surname
     self.name = name
     self.patronymic = patronymic
-    self.git = git if git
+    self.git = git
     self.id = id if id
     self.contact = contact if contact
   end
