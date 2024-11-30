@@ -1,36 +1,45 @@
-class StudentShort < BaseStudent
-  def initialize(student = nil, id = nil, info = nil)
-    if student
-      super(id: student.id, git: student.git, email: student.email, phone: student.phone, telegram: student.telegram)
-      @surname_and_initials = "#{student.surname} #{student.name[0]}. #{student.patronymic[0]}."
-      @contact = student.contact_info
-    elsif id && info
-      @id = id
-      parse_info(info)
-    else
-      raise ArgumentError, 'Неверные параметры для инициализации'
-    end
+class StudentShortInfo < BaseStudent
+  attr_reader :surname_initials, :git, :contact
+
+  def initialize(id:, git:, contact:, surname_initials:)
+    @id = id
+    @git = git
+    @contact = contact
+    @Surname_initials = surname_initials
   end
 
+  def self.new_from_base_student(student)
+    self.new(
+      id: student.id,
+      git: student.git,
+      contact: student.contact,
+      surname_initials: student.short_name
+    )
+  end
+
+  def self.new_from_string(id:, str:)
+    student_short_init = {}
+    
+    params = split(str)
+    student_short_init[:id] = id
+    student_short_init[:surname_initials] = params[0]  
+    student_short_init[:git] = params[1]
+    student_short_init[:contact] = params[2..].join(' ')  
+    self.new(**student_short_init)
+  end
+
+  def self.split(str)
+    str.split('; ')  
+  end
+
+  private_class_method :new
 
   def to_s
-    "ID: #{@id}, Name: #{@surname_and_initials}, Git: #{@git}, Contact: #{@contact}"
-  end
-
-  private
-
-  def parse_info(info)
-    parts = info.split(';')
-    raise ArgumentError, 'Некорректный формат информации' if parts.size != 3
-
-    name_parts = parts[0].split
-    if name_parts.size == 3
-      @surname_and_initials = "#{name_parts[0]} #{name_parts[1][0]}. #{name_parts[2][0]}."
-    else
-      raise ArgumentError, 'Некорректный формат имени'
-    end
-
-    @git = parts[1].strip.split(':').last.strip
-    @contact = parts[2].strip.split(':').last.strip
+    details = []
+    details << "ID: #{@id}" if @id
+    details << "Surname and initials: #{@surname_initials}"
+    details << "GitHub: #{@git}" if @git
+    details << "Contacts: #{@contact}" if @contact
+    details.join("\n")
   end
 end
