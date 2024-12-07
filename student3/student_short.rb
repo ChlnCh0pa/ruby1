@@ -5,7 +5,7 @@ class StudentShortInfo < BaseStudent
     @id = id
     @git = git
     @contact = contact
-    @Surname_initials = surname_initials
+    @surname_initials = surname_initials
   end
 
   def self.new_from_base_student(student)
@@ -19,17 +19,16 @@ class StudentShortInfo < BaseStudent
 
   def self.new_from_string(id:, str:)
     student_short_init = {}
-    
     params = split(str)
     student_short_init[:id] = id
-    student_short_init[:surname_initials] = params[0]  
+    student_short_init[:surname_initials] = params[0]
     student_short_init[:git] = params[1]
     student_short_init[:contact] = params[2..].join(' ')  
     self.new(**student_short_init)
   end
 
   def self.split(str)
-    str.split('; ')  
+    str.split(/,|; /)  
   end
 
   private_class_method :new

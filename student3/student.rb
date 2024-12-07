@@ -57,7 +57,7 @@ class Student < BaseStudent
     elsif @email
       "Mail: #{@email}"
     else
-      nil
+      
     end
   end
 
