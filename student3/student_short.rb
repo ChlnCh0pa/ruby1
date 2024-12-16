@@ -8,7 +8,7 @@ class StudentShortInfo < BaseStudent
     @surname_initials = surname_initials
   end
 
-  def self.new_from_base_student(student)
+  def self.new_from_student(student)
     self.new(
       id: student.id,
       git: student.git,
