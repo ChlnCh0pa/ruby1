@@ -39,19 +39,18 @@ student4 = StudentShortInfo.new_from_student(student3)
 
 puts student1.to_s
 puts student2.to_s
-student1.set_contacts(phone: '+79186654166', email: "new_email@example.com")
+student3.set_contacts(telegram: "@agropromichnelox")
 puts student1.to_s
 student1.validate_git_and_contact
 
 
 
 
-puts student2.get_info
+puts student2.get_info.to_s
 
 puts "\n Краткая инфа:\n #{student_short_from_info.to_s},\n #{student_from_student}  \n\n"
 
 
 
 puts student1.short_name
-puts student1.short_info
-puts student1.contact
+puts student3.set_contacts
