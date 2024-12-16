@@ -3,7 +3,7 @@ class Student < BaseStudent
 
   def initialize(id: nil, surname:, name:, patronymic:, git: nil, phone: nil, telegram: nil, email: nil)
     set_contacts(phone: phone, telegram: telegram, email: email)
-    super(surname: surname, name: name, patronymic: patronymic, git: git, id: id, contact: contact_info)
+    super(surname: surname, name: name, patronymic: patronymic, git: git, id: id, contact: contact)
   end
 
   private def phone=(phone)
@@ -30,11 +30,17 @@ class Student < BaseStudent
     end
   end
 
+  
+   def git_info 
+    self.git
+  end  
+
+
   def set_contacts(phone: nil, telegram: nil, email: nil)
     self.phone = phone if phone
     self.telegram = telegram if telegram
     self.email = email if email
-    self.contact = contact_info
+    self.contact = "#{self.phone || self.telegram || self.email || nil}"
   end
 
   def self.phone_valid?(phone)
@@ -49,17 +55,6 @@ class Student < BaseStudent
     email.match?(/\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i)
   end
 
-  def contact_info
-    if @phone
-      "Phone: #{@phone}"
-    elsif @telegram
-      "Telegramm: #{@telegram}"
-    elsif @email
-      "Mail: #{@email}"
-    else
-      
-    end
-  end
 
   def get_info
     "#{short_name}; Git: #{git_info}; #{@contact}"
