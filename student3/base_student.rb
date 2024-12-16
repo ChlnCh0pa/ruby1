@@ -80,7 +80,9 @@ class BaseStudent
     "#{surname} #{name[0]}.#{patronymic[0]}."
   end
 
-  def git_info
+
+
+  def git_info 
     self.git
   end  
 

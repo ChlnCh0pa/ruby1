@@ -29,12 +29,7 @@ class Student < BaseStudent
       raise ArgumentError, "Неверный адрес электронной почты: #{id} #{surname} #{name}"
     end
   end
-
   
-   def git_info 
-    self.git
-  end  
-
 
   def set_contacts(phone: nil, telegram: nil, email: nil)
     self.phone = phone if phone
