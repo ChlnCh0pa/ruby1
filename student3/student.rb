@@ -29,7 +29,7 @@ class Student < BaseStudent
       raise ArgumentError, "Неверный адрес электронной почты: #{id} #{surname} #{name}"
     end
   end
-  
+
 
   def set_contacts(phone: nil, telegram: nil, email: nil)
     self.phone = phone if phone
@@ -52,7 +52,7 @@ class Student < BaseStudent
 
 
   def get_info
-    "#{short_name}; Git: #{git_info}; #{@contact}"
+    "#{short_name}; Git: #{self.git}; #{self.contact}"
   end
 
   def to_s
@@ -64,7 +64,5 @@ class Student < BaseStudent
     details.join("\n")
   end
 
-  def short_info
-    "id: #{@id}; Surname: #{@surname}; Name: #{@name}; Patronymic: #{@patronymic}; git: #{@git}; #{@contact}"
-  end
+  
 end
