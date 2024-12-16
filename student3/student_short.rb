@@ -1,5 +1,5 @@
 class StudentShortInfo < BaseStudent
-  attr_reader :surname_initials, :git, :contact
+  attr_reader :surname_initials
 
   def initialize(id:, git:, contact:, surname_initials:)
     @id = id
