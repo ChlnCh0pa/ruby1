@@ -82,9 +82,7 @@ class BaseStudent
 
 
 
-  def git_info 
-    self.git
-  end  
+  
 
   def to_s
     "#{@id} #{@surname} #{@name} #{@patronymic}(Contacts: Git: #{@git} Email: #{@email} Phone: #{@phone || 'N/A'} Telegram: #{@telegram || 'N/A'})"
