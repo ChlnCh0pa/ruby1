@@ -4,16 +4,13 @@ class ArrayProcessor
   def initialize(array)
     @array = array.dup.freeze
   end
+  def detect
+    return to_enum(:detect) unless block_given?
 
-  def map
-    return to_enum(:map) unless block_given?
-    result = []
     @array.each do |element|
-      result << yield(element)
+      return element if yield(element)
     end
 
-    result
+    nil
   end
-
-
 end
