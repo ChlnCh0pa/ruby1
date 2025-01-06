@@ -52,7 +52,7 @@ class Student < BaseStudent
 
 
   def get_info
-    "#{short_name}; Git: #{self.git}; #{self.contact}"
+    "Инициалы: #{surname_initials}; Git: #{self.git};  Контакты: #{self.contact}"
   end
 
   def to_s

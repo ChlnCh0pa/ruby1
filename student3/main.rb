@@ -52,5 +52,5 @@ puts "\n Краткая инфа:\n #{student_short_from_info.to_s},\n #{student
 
 
 
-puts student1.short_name
+puts student1.surname_initials
 puts student3.set_contacts

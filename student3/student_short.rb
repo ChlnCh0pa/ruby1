@@ -1,6 +1,4 @@
 class StudentShortInfo < BaseStudent
-  attr_reader :surname_initials
-
   def initialize(id:, git:, contact:, surname_initials:)
     @id = id
     @git = git
@@ -8,13 +6,14 @@ class StudentShortInfo < BaseStudent
     @surname_initials = surname_initials
   end
 
+
   def self.new_from_student(student)
     self.new(
       id: student.id,
       git: student.git,
       contact: student.contact,
-      surname_initials: student.short_name
-    )
+      surname_initials: student.surname_initials
+      )
   end
 
   def self.new_from_string(id:, str:)

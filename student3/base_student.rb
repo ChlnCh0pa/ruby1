@@ -10,24 +10,20 @@ class BaseStudent
     self.contact = contact if contact
   end
 
-
   def surname=(value)
     validate_name(:surname, value)
     @surname = value
   end
-
 
   def name=(value)
     validate_name(:name, value)
     @name = value
   end
 
- 
   def patronymic=(value)
     validate_name(:patronymic, value)
     @patronymic = value
   end
-
 
   def id=(value)
     raise ArgumentError, "Неверный ID: #{value}" unless BaseStudent.id_valid?(value)
@@ -39,21 +35,21 @@ class BaseStudent
     @git = value
   end
 
- 
   def validate_name(field, value)
     raise ArgumentError, "Неверное значение для #{field}: #{value}" unless BaseStudent.name_valid?(value)
   end
 
-  
+  def surname_initials
+    "#{@surname} #{@name[0]}.#{@patronymic[0]}."
+  end
+
   def self.name_valid?(name)
     name.match?(/^[А-ЯЁA-Z][а-яёa-z-]+$/)
   end
 
-
   def self.id_valid?(id)
     id.to_s.match?(/^\d+$/)
   end
-
 
   def self.git_valid?(git)
     git.match?(/^github\.com\/[\w.-]+$/)
@@ -75,16 +71,7 @@ class BaseStudent
     git_null? && contact_null?
   end
 
-
-  def short_name
-    "#{surname} #{name[0]}.#{patronymic[0]}."
-  end
-
-
-
-  
-
   def to_s
-    "#{@id} #{@surname} #{@name} #{@patronymic}(Contacts: Git: #{@git} Email: #{@email} Phone: #{@phone || 'N/A'} Telegram: #{@telegram || 'N/A'})"
+    "#{@id} #{@surname} #{@name} #{@patronymic}(Contacts: Git: #{@git} Email: #{@contact || 'N/A'})"
   end
 end
