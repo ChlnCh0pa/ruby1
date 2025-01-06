@@ -5,19 +5,17 @@ class ArrayProcessor
     @array = array.dup.freeze
   end
 
-  def drop_while
-    return to_enum(:drop_while) unless block_given?
-    result = []
-    dropping = true
+
+  def max
+    return nil if @array.empty?
+    max_element = @array.first
 
     @array.each do |element|
-      if dropping && !yield(element)
-        dropping = false
-      end
-      result << element unless dropping
+      max_element = element if yield(max_element, element) < 0
     end
 
-    result
+    max_element
   end
 
+ 
 end
