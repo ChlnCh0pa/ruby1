@@ -6,15 +6,20 @@ class ArrayProcessor
   end
 
 
-  def max
-    return nil if @array.empty?
-    max_element = @array.first
 
-    @array.each do |element|
-      max_element = element if yield(max_element, element) < 0
+  def sort
+    return to_enum(:sort) unless block_given?
+    result = @array.dup
+
+    (result.length - 1).times do
+      (0...result.length - 1).each do |i|
+        if yield(result[i], result[i + 1]) > 0
+          result[i], result[i + 1] = result[i + 1], result[i]
+        end
+      end
     end
 
-    max_element
+    result
   end
 
  
