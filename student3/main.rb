@@ -1,6 +1,8 @@
+require_relative 'binary_tree'
 require_relative 'base_student'
 require_relative 'student'
 require_relative 'student_short'
+
 
 student1 = Student.new(
   id: '1',
@@ -10,7 +12,8 @@ student1 = Student.new(
   git: 'github.com/prospero',
   email: 'lemanruss@yandex.ru',
   phone: '+79186654123',
-  telegram: '@russkiy_volk'
+  telegram: '@russkiy_volk',
+  birth_date: Date.new(1998, 5, 15)
 )
 
 student2 = Student.new(
@@ -20,7 +23,8 @@ student2 = Student.new(
   patronymic: 'Bangovich',
   email: 'torba_na_kruche@shir.ru',
   git: 'github.com/bulba',
-  telegram: '@sumkin'
+  telegram: '@sumkin',
+  birth_date: Date.new(2003, 5, 20)
 )
 
 student3 = Student.new(
@@ -29,7 +33,8 @@ student3 = Student.new(
   patronymic: 'Dimedrolovich',
   surname:'Grebneshchikov',
   git: 'github.com/grebenb',
-  telegram: '@agropromlox'
+  telegram: '@agropromlox',
+  birth_date: Date.new(1989, 10, 5)
   )
 
 student_from_student = StudentShortInfo.new_from_student(student3)
@@ -53,4 +58,12 @@ puts "\n Краткая инфа:\n #{student_short_from_info.to_s},\n #{student
 
 
 puts student1.surname_initials
-puts student3.set_contacts
+puts "#{student3.set_contacts}\n\n"
+
+tree = BinaryTree.new
+tree.add(student1)
+tree.add(student2)
+tree.add(student3)
+tree.each { |student| puts student.birth_date }
+puts tree.map { |s| s.surname }
+puts tree.count 
