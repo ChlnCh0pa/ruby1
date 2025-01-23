@@ -1,10 +1,22 @@
+require_relative 'base_student'
 class Student < BaseStudent
-  attr_reader :phone, :telegram, :email
+  attr_reader :phone, :telegram, :email, :birth_date 
 
-  def initialize(id: nil, surname:, name:, patronymic:, git: nil, phone: nil, telegram: nil, email: nil)
+  def initialize(id: nil, surname:, name:, patronymic:, git: nil, phone: nil, telegram: nil, email: nil, birth_date: nil)
     set_contacts(phone: phone, telegram: telegram, email: email)
+    self.birth_date = birth_date if birth_date
     super(surname: surname, name: name, patronymic: patronymic, git: git, id: id, contact: contact)
   end
+
+ def self.birth_date_valid?(date)
+  return true if date.is_a?(Date) 
+  Date.parse(date.to_s) rescue false
+end
+
+ def birth_date=(date)
+  raise ArgumentError, 'Некорректная дата рождения' unless self.class.birth_date_valid?(date) 
+  @birth_date = date.is_a?(Date) ? date : Date.parse(date)
+end
 
   private def phone=(phone)
     if phone.nil? || Student.phone_valid?(phone)
