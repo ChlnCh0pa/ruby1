@@ -1,7 +1,14 @@
 class DataList
-  def initialize(data)
-    @data = data.sort_by(&:id)  
+  attr_reader :columns_names
+
+  def initialize(data, columns_names)
+    @data = data.sort_by(&:id)  # Предполагаем, что элементы имеют метод `id`
+    @columns_names = columns_names
     @selected = []
+  end
+
+  def data=(new_data)
+    @data = new_data.sort_by(&:id)
   end
 
 
@@ -9,15 +16,13 @@ class DataList
     if number >= 0 && number < @data.size
       @selected << @data[number].id unless @selected.include?(@data[number].id)
     else
-      puts "Invalid number"
+      puts "Неверный номер"
     end
   end
-
 
   def get_selected
     @selected
   end
-
 
   def get_names
     ['ID'] + specific_names
@@ -31,8 +36,8 @@ class DataList
     DataTable.new(data_with_indices)
   end
 
+  
   private
-
 
   def specific_names
     raise NotImplementedError, "Этот метод должен быть реализован в подклассе"
