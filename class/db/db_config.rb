@@ -19,7 +19,7 @@ class Db_Connection
       password: '123',
       host: 'localhost',
       port: 5432
-    )
+
 
   end
 
