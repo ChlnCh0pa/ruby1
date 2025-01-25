@@ -1,14 +1,4 @@
-require 'pg'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/student.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/Data_list.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/base_student.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/Data_table.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/strategy_list_file.rb'
-require 'json'
-require 'yaml'
-
 class DatabaseHandler
-  
   @@instance = nil
 
   def initialize(db_params)
@@ -16,7 +6,7 @@ class DatabaseHandler
     @students_cache = {}
   end
 
-  # Метод для получения единственного экземпляра
+
   def self.instance(db_params = nil)
     @@instance ||= new(db_params)
   end
@@ -75,6 +65,7 @@ class DatabaseHandler
   end
 
   def add_student(new_student)
+
     if student_exists?(new_student)
       raise "Студент с такими данными уже существует!"
     end
@@ -92,8 +83,8 @@ class DatabaseHandler
       ]
     )
     
-    # Кэшируем студента для быстрого поиска по ранее добавленным данным
-    @students_cache[new_student.git] = new_student
+
+    @students_cache[generate_student_cache_key(new_student)] = new_student
     
     result[0]['id'].to_i
   end
@@ -127,14 +118,19 @@ class DatabaseHandler
   
 
   def student_exists?(new_student)
-    @students_cache.key?(new_student.git) || existing_student_in_db?(new_student)
+    @students_cache.key?(generate_student_cache_key(new_student)) || existing_student_in_db?(new_student)
   end
+  
 
   def existing_student_in_db?(new_student)
     result = @conn.exec_params(
-      'SELECT COUNT(*) FROM student WHERE git = $1 OR email = $2',
-      [new_student.git, new_student.email]
+      'SELECT COUNT(*) FROM student WHERE surname = $1 AND name = $2 AND patronymic = $3',
+      [new_student.surname, new_student.name, new_student.patronymic]
     )
     result[0]['count'].to_i > 0
+  end
+
+  def generate_student_cache_key(student)
+    "#{student.surname}_#{student.name}_#{student.patronymic}"
   end
 end
