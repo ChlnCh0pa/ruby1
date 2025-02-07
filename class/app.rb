@@ -1,45 +1,25 @@
-require 'fox16'
-include Fox
-
 class StudentApp < FXMainWindow
   def initialize(app)
-    super(app, "Управление Студентами", width: 1080, height: 505)
+    super(app, "Student Table", width: 800, height: 600)
 
-    @current_page = 1
-    @items_per_page = 6
-    @total_pages = 1
-
-    @table_data = []
-    @table_shown = []
-
-    tab_book = FXTabBook.new(self, opts: LAYOUT_FILL)
-
-    tab1 = FXTabItem.new(tab_book, "Список студентов", nil)
-    tab1_frame = FXVerticalFrame.new(tab_book, opts: LAYOUT_FILL)
-    setup_main_interface(tab1_frame)
-
-    tab2 = FXTabItem.new(tab_book, "Вкладка 2", nil)
-    tab2_frame = FXVerticalFrame.new(tab_book, opts: LAYOUT_FILL)
-    FXLabel.new(tab2_frame, "Это содержимое второй вкладки")
-
-    tab3 = FXTabItem.new(tab_book, "Вкладка 3", nil)
-    tab3_frame = FXVerticalFrame.new(tab_book, opts: LAYOUT_FILL)
-    FXLabel.new(tab3_frame, "Это содержимое третьей вкладки")
-  end
-
-  def setup_main_interface(parent)
-    main_frame = FXHorizontalFrame.new(parent, LAYOUT_FILL_X | LAYOUT_FILL_Y)
-
-    filter_frame = FXVerticalFrame.new(main_frame, LAYOUT_FIX_WIDTH, width: 250, padding: 10)
+    # Создание панели для фильтров
+    filter_frame = FXVerticalFrame.new(self, opts: LAYOUT_FILL_X | LAYOUT_FILL_Y)
     setup_filter_area(filter_frame)
 
-    table_frame = FXVerticalFrame.new(main_frame, LAYOUT_FILL_X | LAYOUT_FILL_Y, padding: 10)
+    # Создание панели для таблицы
+    table_frame = FXVerticalFrame.new(self, opts: LAYOUT_FILL_X | LAYOUT_FILL_Y)
     setup_table_area(table_frame)
 
-    control_frame = FXVerticalFrame.new(main_frame, LAYOUT_FIX_WIDTH, width: 150, padding: 10)
-    setup_control_area(control_frame)
+    # Панель для кнопок
+    button_frame = FXHorizontalFrame.new(self, opts: LAYOUT_FILL_X | LAYOUT_SIDE_BOTTOM)
+    setup_buttons(button_frame)
 
-    refresh_data
+    # Пример использования дополнительной кнопки "Сбросить"
+    reset_button = FXButton.new(button_frame, "Сбросить", opts: BUTTON_NORMAL)
+    reset_button.connect(SEL_COMMAND) do
+      reset_filters
+      update_buttons_state
+    end
   end
 
   def setup_filter_area(parent)
@@ -48,163 +28,175 @@ class StudentApp < FXMainWindow
     FXLabel.new(parent, "Фамилия и инициалы:")
     @name_input = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
 
-    add_filtering_row(parent, "Email:", :email)
-    add_filtering_row(parent, "Телефон:", :phone_number)
-    add_filtering_row(parent, "Telegram:", :telegram)
-    add_filtering_row(parent, "Git:", :git)
+    # Добавляем остальные поля ввода фильтров
+    FXLabel.new(parent, "Email:")
+    @email_input = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
 
+    FXLabel.new(parent, "Телефон:")
+    @phone_number_input = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
+
+    FXLabel.new(parent, "Telegram:")
+    @telegram_input = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
+
+    FXLabel.new(parent, "Git:")
+    @git_input = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
+
+    # Кнопка для сброса фильтров
     FXButton.new(parent, "Сбросить", opts: BUTTON_NORMAL).connect(SEL_COMMAND) do
       reset_filters
     end
   end
 
-  def add_filtering_row(parent, label, rw)
-    FXLabel.new(parent, label)
-
-    button_frame = FXHorizontalFrame.new(parent, opts: LAYOUT_FILL_X)
-    rb_yes = FXRadioButton.new(button_frame, "Да")
-    rb_no = FXRadioButton.new(button_frame, "Нет")
-    rb_dk = FXRadioButton.new(button_frame, "Не важно")
-
-    text_field = FXTextField.new(parent, 25, opts: TEXTFIELD_NORMAL)
-    text_field.enabled = false
-
-    rb_dk.check = true
-
-    rb_yes.connect(SEL_COMMAND) { handle_radio_button(rb_yes, true, text_field) }
-    rb_no.connect(SEL_COMMAND) { handle_radio_button(rb_no, false, text_field) }
-    rb_dk.connect(SEL_COMMAND) { handle_radio_button(rb_dk, nil, text_field) }
-  end
-
-  def handle_radio_button(selected_button, value, text_field)
-    selected_button.check = true
-    text_field.enabled = value
-    text_field.text = ""
-  end
-
   def setup_table_area(parent)
-    @table = FXTable.new(parent, opts: LAYOUT_FILL_X | LAYOUT_FILL_Y | TABLE_READONLY | TABLE_COL_SIZABLE)
-    @table.setTableSize(@items_per_page + 1, 4)
-    @table.setColumnWidth(0, 30)
-    (1...4).each { |col| @table.setColumnWidth(col, 204) }
-    @table.rowHeaderWidth = 0
-    @table.columnHeaderHeight = 0
+    @table = FXTable.new(parent, opts: LAYOUT_FILL_X | LAYOUT_FILL_Y)
+    @table.setTableSize(0, 5)  # Изначально таблица пуста
 
-    @table.connect(SEL_COMMAND) do |_, _, pos|
-      if pos.row == 0
-        sort_table_by_column(pos.col)
+    # Настройка колонок
+    @table.setColumnText(0, "Фамилия и инициалы")
+    @table.setColumnText(1, "Email")
+    @table.setColumnText(2, "Телефон")
+    @table.setColumnText(3, "Telegram")
+    @table.setColumnText(4, "Git")
+
+    # Добавление текстового сообщения "Нет данных"
+    @no_data_label = FXLabel.new(parent, "Нет данных для отображения", opts: LAYOUT_CENTER_X | LAYOUT_CENTER_Y)
+    @no_data_label.visible = false  # Скрываем по умолчанию
+
+    update_table_data
+  end
+
+  def update_table_data
+    # Пример данных для таблицы
+    data = [
+      ["Иванов И.И.", "ivanov@example.com", "+79990000000", "@ivanov", "ivanov_git"],
+      ["Петров П.П.", "petrov@example.com", "+79990000001", "@petrov", "petrov_git"]
+    ]
+
+    # Очищаем таблицу перед добавлением новых данных
+    @table.setTableSize(data.size, 5)
+
+    # Заполняем таблицу данными
+    data.each_with_index do |row, row_index|
+      row.each_with_index do |value, col_index|
+        @table.setItemText(row_index, col_index, value)
       end
-
-      if pos.col == 0
-        @table.selectRow(pos.row)
-      end
-
-      update_buttons_state
     end
 
-    navigation_frame = FXHorizontalFrame.new(parent, opts: LAYOUT_FILL_X)
-    @prev_button = FXButton.new(navigation_frame, "Предыдущая", opts: BUTTON_NORMAL | LAYOUT_LEFT)
-    @prev_button.enabled = false
-    @next_button = FXButton.new(navigation_frame, "Следующая", opts: BUTTON_NORMAL | LAYOUT_RIGHT)
-    @next_button.enabled = true
-    @page_label = FXLabel.new(navigation_frame, "", opts: LAYOUT_CENTER_X)
-
-    @prev_button.connect(SEL_COMMAND) { change_page(-1) }
-    @next_button.connect(SEL_COMMAND) { change_page(1) }
-  end
-
-  def change_page(offset)
-    new_page = @current_page + offset
-    if new_page == 1
-      @prev_button.enabled = false
+    # Если данных нет, показываем сообщение "Нет данных"
+    if data.empty?
+      @no_data_label.visible = true
     else
-      @prev_button.enabled = true
-    end
-    if new_page == @total_pages
-      @next_button.enabled = false
-    else
-      @next_button.enabled = true
+      @no_data_label.visible = false
     end
 
-    @current_page = new_page
-
-    @page_label.text = "Страница #{@current_page} / #{@total_pages}"
-    refresh_data
+    # Обновление размера окна в зависимости от количества элементов
+    adjust_window_size
   end
 
-  def update_buttons_state
-    selected_rows = (0...@table.numRows).select { |row| @table.rowSelected?(row) }
-    @delete_button.enabled = !selected_rows.empty?
-    @edit_button.enabled = selected_rows.size == 1
-  end
-
-  def sort_table_by_column(col_idx = 0)
-    # Здесь должна быть логика сортировки
-  end
-
-  def setup_control_area(parent)
-    FXLabel.new(parent, "Управление", opts: LAYOUT_FILL_X)
-
-    @add_button = FXButton.new(parent, "Добавить", opts: BUTTON_NORMAL | LAYOUT_FILL_X)
-    @add_button.connect(SEL_COMMAND) { add_entry }
-
-    @delete_button = FXButton.new(parent, "Удалить", opts: BUTTON_NORMAL | LAYOUT_FILL_X)
-    @delete_button.connect(SEL_COMMAND) { delete_entries }
-
-    @edit_button = FXButton.new(parent, "Изменить", opts: BUTTON_NORMAL | LAYOUT_FILL_X)
-    @edit_button.connect(SEL_COMMAND) { edit_entry }
-
-    @refresh_button = FXButton.new(parent, "Обновить", opts: BUTTON_NORMAL | LAYOUT_FILL_X)
-    @refresh_button.connect(SEL_COMMAND) { apply_filter }
-
-    @table.connect(SEL_CHANGED) { update_buttons_state }
-
-    update_buttons_state
-  end
-
-  def refresh_data
- 
-  end
-
-  def apply_filter
-
+  def adjust_window_size
+    # Проверка на количество строк в таблице, чтобы изменить размер окна
+    table_rows = @table.numRows
+    new_height = 600 + (table_rows * 20)  # Регулируем высоту окна
+    new_height = 800 if new_height < 800  # Минимальная высота окна
+    self.height = new_height
   end
 
   def reset_filters
-
+    # Сброс всех фильтров
+    @name_input.text = ""
+    @email_input.text = ""
+    @phone_number_input.text = ""
+    @telegram_input.text = ""
+    @git_input.text = ""
+    update_table_data
   end
 
-  def clear_table
-    (1...@table.numRows).each do |row|
-      (0...@table.numColumns).each do |col|
-        @table.setItemText(row, col, "")
-      end
+  def setup_buttons(parent)
+    # Кнопки для добавления, изменения, удаления и обновления
+    add_button = FXButton.new(parent, "Добавить", opts: BUTTON_NORMAL)
+    add_button.connect(SEL_COMMAND) do
+      add_student
+    end
+
+    update_button = FXButton.new(parent, "Обновить", opts: BUTTON_NORMAL)
+    update_button.connect(SEL_COMMAND) do
+      update_student
+    end
+
+    delete_button = FXButton.new(parent, "Удалить", opts: BUTTON_NORMAL)
+    delete_button.connect(SEL_COMMAND) do
+      delete_student
     end
   end
 
-  def add_entry
-
+  def add_student
+    # Логика добавления студента
+    puts "Добавление студента"
   end
 
-  def edit_entry
-    
+  def update_student
+    # Логика обновления студента
+    puts "Обновление студента"
   end
 
-  def delete_entries
-  
+  def delete_student
+    # Логика удаления студента
+    puts "Удаление студента"
+  end
+
+  def update_buttons_state
+    # Логика активации/деактивации кнопок в зависимости от выделенной строки
+    selected_rows = @table.getSelectedRows
+    if selected_rows.empty?
+      # Только кнопка "Удалить" доступна, если нет выбранных строк
+      disable_buttons_except("Удалить")
+    elsif selected_rows.size == 1
+      # Доступны кнопки "Изменить" и "Удалить", если одна строка выделена
+      enable_buttons(["Изменить", "Удалить"])
+    else
+      # Только кнопка "Удалить" доступна, если выбраны несколько строк
+      disable_buttons_except("Удалить")
+    end
+  end
+
+  def disable_buttons_except(except_button)
+    # Логика для отключения кнопок, кроме указанной
+    buttons = ["Добавить", "Изменить", "Удалить", "Обновить"]
+    buttons.each do |button|
+      button = find_button(button)
+      button.disable unless button.text == except_button
+    end
+  end
+
+  def enable_buttons(buttons)
+    # Включаем указанные кнопки
+    buttons.each do |button|
+      find_button(button).enable
+    end
+  end
+
+  def find_button(button_name)
+    # Поиск кнопки по имени (для примера)
+    case button_name
+    when "Добавить"
+      @add_button
+    when "Изменить"
+      @update_button
+    when "Удалить"
+      @delete_button
+    when "Обновить"
+      @update_button
+    else
+      raise "Неизвестная кнопка"
+    end
   end
 
   def create
-    super
     show(PLACEMENT_SCREEN)
   end
 end
 
-# Запуск приложения
-if __FILE__ == $0
-  FXApp.new do |app|
-    StudentApp.new(app)
-    app.create
-    app.run
-  end
-end
+app = FXApp.new
+StudentApp.new(app)
+app.create
+app.run
