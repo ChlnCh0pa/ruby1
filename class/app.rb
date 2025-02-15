@@ -1,19 +1,16 @@
 require 'fox16'
-require 'ostruct'
-require 'pg'
 include Fox
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/db/students_list_DB.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/student_short.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/student.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/Data_list_student_short.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/students_list_json.rb'
-require_relative 'C:/Users/Sergey/AppData/Local/GitHubDesktop/ruby/class/students_list_yaml.rb'
 
 class MainApp < FXMainWindow
   def initialize(app)
-    super(app, "Студентики", width: 1000, height: 600)
+    super(app, "Приложение со списком студентов", width: 1000, height: 600)
+    @controller = StudentListController.new(self)
+    @students = @controller.students_list
+    @current_page = 0
+    @original_students = @students.dup
+    @selected_row = -1  # Инициализация выбранной строки
 
-
+    # Создаем TabBook (контейнер для вкладок)
     tab_book = FXTabBook.new(self, nil, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y)
 
     # Создаем первую вкладку
@@ -21,207 +18,6 @@ class MainApp < FXMainWindow
   end
 
   private
-
-  def create_student_tab(tab_book, title)
-
-    tab_item = FXTabItem.new(tab_book, title, nil)
-
-
-    content_frame = FXVerticalFrame.new(tab_book, LAYOUT_FILL_X | LAYOUT_FILL_Y,
-                                      padLeft: 10, padRight: 10, padTop: 10, padBottom: 10,
-                                      hSpacing: 5, vSpacing: 5)
-
- 
-    filter_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X)
-
-    surname_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
-    FXLabel.new(surname_frame, "Фамилия и инициалы:")
-
-
-    git_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
-    FXLabel.new(git_frame, "Гит:")
-    @git_combo = FXComboBox.new(git_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
-    @git_combo.appendItem("Не важно")
-    @git_combo.appendItem("Да")
-    @git_combo.appendItem("Нет")
-    @git_combo.currentItem = 0
-
-
-    email_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
-    FXLabel.new(email_frame, "Почта:")
-    @email_combo = FXComboBox.new(email_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
-    @email_combo.appendItem("Не важно")
-    @email_combo.appendItem("Да")
-    @email_combo.appendItem("Нет")
-    @email_combo.currentItem = 0
-
-
-    phone_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
-    FXLabel.new(phone_frame, "Телефон:")
-    @phone_combo = FXComboBox.new(phone_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
-    @phone_combo.appendItem("Не важно")
-    @phone_combo.appendItem("Да")
-    @phone_combo.appendItem("Нет")
-    @phone_combo.currentItem = 0
-
-  
-    telegram_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
-    FXLabel.new(telegram_frame, "Телеграмм:")
-    @telegram_combo = FXComboBox.new(telegram_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
-    @telegram_combo.appendItem("Не важно")
-    @telegram_combo.appendItem("Да")
-    @telegram_combo.appendItem("Нет")
-    @telegram_combo.currentItem = 0
-
- 
-    filter_button = FXButton.new(content_frame, "Применить фильтр")
-
-   
-    reset_button = FXButton.new(content_frame, "Сбросить фильтр")
-
- 
-    @table = FXTable.new(content_frame, nil, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y | TABLE_COL_SIZABLE | TABLE_ROW_SIZABLE)
-    @table.setTableSize(5, 6)  
-
-
-    @table.connect(SEL_SELECTED) do
-      puts "Строка выбрана: #{@table.currentRow}" 
-      update_button_states
-    end
-
-    @table.setFocus
-
-
-    control_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
-    add_button = FXButton.new(control_frame, "Добавить")
-    @edit_button = FXButton.new(control_frame, "Изменить")
-    @delete_button = FXButton.new(control_frame, "Удалить")
-    update_button = FXButton.new(control_frame, "Обновить")
-
-
-    pagination_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
-    @prev_button = FXButton.new(pagination_frame, "Назад")
-    @next_button = FXButton.new(pagination_frame, "Вперед")
-
-
-    @page_label = FXLabel.new(pagination_frame, "Страница 1 из 1")
-
-
-    @students = load_students_from_db
-    @current_page = 0
-    @sort_column = nil
-    @sort_order = :asc
-    @original_students = @students.dup
-
-    set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
-
-
-    update_table(@current_page)
-
-
-    filter_button.connect(SEL_COMMAND) do
-      filter_students
-    end
-
-    reset_button.connect(SEL_COMMAND) do
-      @students = @original_students.dup
-      set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
-      update_table(@current_page)
-      reset_filters
-    end
-
-    add_button.connect(SEL_COMMAND) do
-      add_student
-    end
-
-    @edit_button.connect(SEL_COMMAND) do
-      edit_student
-    end
-
-    @delete_button.connect(SEL_COMMAND) do
-      delete_student
-    end
-
-    update_button.connect(SEL_COMMAND) do
-      filter_students
-    end
-
-    @prev_button.connect(SEL_COMMAND) do
-      if @current_page > 0
-        @current_page -= 1
-        update_table(@current_page)
-      end
-    end
-
-    @next_button.connect(SEL_COMMAND) do
-      if (@current_page + 1) * 5 < @students.size
-        @current_page += 1
-        update_table(@current_page)
-      end
-    end
-
-
-    update_button_states
-  end
-
-  def load_students_from_db
-    begin
-      db_params = { dbname: 'students', user: 'postgres', password: '123', port: 5432, host: 'localhost' }
-      students_list_db = DatabaseHandler.create(db_params)
-      students = students_list_db.get_k_n_student_short_list(1, 100).elements
-
-
-      students.dup
-    rescue PG::Error => e
-      FXMessageBox.error(self, MBOX_OK, "Ошибка базы данных", "Не удалось загрузить данные: #{e.message}")
-      []
-    end
-  end
-
-  def save_student_to_db(student)
-    begin
-      db_params = { dbname: 'students', user: 'postgres', password: '123', port: 5432, host: 'localhost' }
-      conn = PG.connect(db_params)
-      conn.exec_params(
-        "INSERT INTO student (surname, name, patronymic, git, email, phone, telegram) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        [student.surname, student.name, student.patronymic, student.git, student.email, student.phone, student.telegram]
-      )
-      puts "Студент успешно добавлен в базу данных: #{student.surname} #{student.name}"
-    rescue PG::Error => e
-      FXMessageBox.error(self, MBOX_OK, "Ошибка базы данных", "Не удалось сохранить студента: #{e.message}")
-    ensure
-      conn.close if conn
-    end
-  end
-
-  def update_student_in_db(student)
-    begin
-      db_params = { dbname: 'students', user: 'postgres', password: '123', port: 5432, host: 'localhost' }
-      conn = PG.connect(db_params)
-      conn.exec_params(
-        "UPDATE student SET surname = $1, name = $2, patronymic = $3, git = $4, email = $5, phone = $6, telegram = $7 WHERE id = $8",
-        [student.surname, student.name, student.patronymic, student.git, student.email, student.phone, student.telegram, student.id]
-      )
-      puts "Студент успешно обновлен в базе данных: #{student.surname} #{student.name}"
-    rescue PG::Error => e
-      FXMessageBox.error(self, MBOX_OK, "Ошибка базы данных", "Не удалось обновить студента: #{e.message}")
-    ensure
-      conn.close if conn
-    end
-  end
-
-  def delete_student_from_db(student_id)
-    begin
-      db_params = { dbname: 'students', user: 'postgres', password: '123', port: 5432, host: 'localhost' }
-      conn = PG.connect(db_params)
-      conn.exec_params("DELETE FROM student WHERE id = $1", [student_id])
-      puts "Студент успешно удален из базы данных: ID #{student_id}"
-    rescue PG::Error => e
-      FXMessageBox.error(self, MBOX_OK, "Ошибка базы данных", "Не удалось удалить студента: #{e.message}")
-    ensure
-      conn.close if conn
-    end
-  end
 
   def set_table_params(column_names, whole_entities_count)
     display_names = {
@@ -232,14 +28,16 @@ class MainApp < FXMainWindow
       'telegram' => 'Telegram'
     }
 
+    # Устанавливаем заголовок для колонки "№"
     @table.setColumnText(0, "№")
 
+    # Устанавливаем заголовки для остальных колонок
     column_names.each_with_index do |name, id|
       display_name = display_names[name] || name
       @table.setColumnText(id + 1, display_name)
     end
 
-
+    # Устанавливаем ширину колонок
     @table.setColumnWidth(0, 30)   # №
     @table.setColumnWidth(1, 200)  # ФИО
     @table.setColumnWidth(2, 150)  # Git
@@ -248,18 +46,150 @@ class MainApp < FXMainWindow
     @table.setColumnWidth(5, 150)  # Telegram
   end
 
+  def create_student_tab(tab_book, title)
+    # Создаем вкладку (FXTabItem)
+    tab_item = FXTabItem.new(tab_book, title, nil)
+
+    # Создаем контейнер для вкладки (FXVerticalFrame)
+    content_frame = FXVerticalFrame.new(tab_book, LAYOUT_FILL_X | LAYOUT_FILL_Y,
+                                        padLeft: 10, padRight: 10, padTop: 10, padBottom: 10,
+                                        hSpacing: 5, vSpacing: 5)
+
+    # Область фильтрации
+    filter_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X)
+
+    # Часть 1: Поле для ввода фамилии и инициалов
+    surname_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
+    FXLabel.new(surname_frame, "Фамилия и инициалы:")
+
+    # Часть 2: Гит
+    git_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
+    FXLabel.new(git_frame, "Гит:")
+    @git_combo = FXComboBox.new(git_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
+    @git_combo.appendItem("Не важно")
+    @git_combo.appendItem("Да")
+    @git_combo.appendItem("Нет")
+    @git_combo.currentItem = 0
+
+    # Часть 3: Почта
+    email_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
+    FXLabel.new(email_frame, "Почта:")
+    @email_combo = FXComboBox.new(email_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
+    @email_combo.appendItem("Не важно")
+    @email_combo.appendItem("Да")
+    @email_combo.appendItem("Нет")
+    @email_combo.currentItem = 0
+
+    # Часть 4: Телефон
+    phone_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
+    FXLabel.new(phone_frame, "Телефон:")
+    @phone_combo = FXComboBox.new(phone_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
+    @phone_combo.appendItem("Не важно")
+    @phone_combo.appendItem("Да")
+    @phone_combo.appendItem("Нет")
+    @phone_combo.currentItem = 0
+
+    # Часть 5: Телеграмм
+    telegram_frame = FXVerticalFrame.new(filter_frame, LAYOUT_FILL_Y)
+    FXLabel.new(telegram_frame, "Телеграмм:")
+    @telegram_combo = FXComboBox.new(telegram_frame, 10, nil, 0, COMBOBOX_STATIC | FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_Y)
+    @telegram_combo.appendItem("Не важно")
+    @telegram_combo.appendItem("Да")
+    @telegram_combo.appendItem("Нет")
+    @telegram_combo.currentItem = 0
+
+    # Кнопка для применения фильтра
+    filter_button = FXButton.new(content_frame, "Применить фильтр")
+    filter_button.connect(SEL_COMMAND) do
+      filter_students
+    end
+
+    # Кнопка для сброса фильтра
+    reset_button = FXButton.new(content_frame, "Сбросить фильтр")
+    reset_button.connect(SEL_COMMAND) do
+      @students = @original_students.dup
+      set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+      update_table(@current_page)
+      reset_filters
+    end
+
+    # Таблица для отображения студентов
+    @table = FXTable.new(content_frame, nil, 0, TABLE_READONLY | LAYOUT_FILL_X | LAYOUT_FILL_Y | TABLE_COL_SIZABLE | TABLE_ROW_SIZABLE)
+    @table.setTableSize(5, 6)  # 5 строк, 6 колонок: №, ФИО, Git, Почта, Телефон, Telegram
+
+    # Устанавливаем параметры таблицы
+    set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+
+    # Область управления (кнопки)
+    control_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
+    add_button = FXButton.new(control_frame, "Добавить")
+    add_button.connect(SEL_COMMAND) do
+      add_student
+    end
+
+    @edit_button = FXButton.new(control_frame, "Изменить")
+    @edit_button.connect(SEL_COMMAND) do
+      edit_student
+    end
+
+    @delete_button = FXButton.new(control_frame, "Удалить")
+    @delete_button.connect(SEL_COMMAND) do
+      delete_student
+    end
+
+    update_button = FXButton.new(control_frame, "Обновить")
+    update_button.connect(SEL_COMMAND) do
+      @students = @controller.students_list
+      set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+      update_table(@current_page)
+    end
+
+    # Кнопки для пагинации
+    pagination_frame = FXHorizontalFrame.new(content_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
+    @prev_button = FXButton.new(pagination_frame, "Назад")
+    @prev_button.connect(SEL_COMMAND) do
+      @current_page -= 1 if @current_page > 0
+      update_table(@current_page)
+    end
+
+    @next_button = FXButton.new(pagination_frame, "Вперед")
+    @next_button.connect(SEL_COMMAND) do
+      @current_page += 1 if (@current_page + 1) * 5 < @students.size
+      update_table(@current_page)
+    end
+
+    # Текстовое поле для отображения текущей страницы и общего количества страниц
+    @page_label = FXLabel.new(pagination_frame, "Страница 1 из 1")  # Инициализация @page_label
+
+    # Обновляем таблицу после инициализации @page_label
+    update_table(@current_page)
+
+    # Обработчик событий для выделения строк в таблице
+    @table.connect(SEL_SELECTED) do |sender, sel, data|
+      puts "Row selected: #{data.row}"  # Debug print
+      @selected_row = data.row + @current_page * 5  # Сохраняем выбранную строку с учетом текущей страницы
+      update_button_states
+    end
+
+    # Инициализация состояния кнопок
+    update_button_states
+  end
+
   def update_table(page)
+    return if page.nil? || page < 0
+
+    @current_page = page
     start_index = page * 5
     end_index = [start_index + 5, @students.size].min
 
- 
+    # Устанавливаем параметры таблицы перед обновлением данных
     set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
 
-  
+    # Очищаем таблицу
     @table.clearItems
-    @table.setTableSize(end_index - start_index, 6) 
+    @table.setTableSize(end_index - start_index, 6)  # 6 колонок: №, ФИО, Git, Почта, Телефон, Telegram
 
-
+    # Заполняем таблицу данными
     (0...(end_index - start_index)).each do |row|
       student = @students[start_index + row]
 
@@ -269,51 +199,23 @@ class MainApp < FXMainWindow
       @table.setItemText(row, 3, student.email || "Не указано")  # Почта
       @table.setItemText(row, 4, student.phone || "Не указано")  # Телефон
       @table.setItemText(row, 5, student.telegram || "Не указано")  # Telegram
-
-
-      @table.setItemJustify(row, 2, FXTableItem::LEFT | TEXT_WORDWRAP)
     end
 
+    # Обновляем информацию о странице
     total_pages = (@students.size / 5.0).ceil
     @page_label.text = "Страница #{page + 1} из #{total_pages}"
   end
 
   def filter_students
-    @students = @original_students.select do |student|
-      match = true
+    git_filter = @git_combo.currentItem
+    email_filter = @email_combo.currentItem
+    phone_filter = @phone_combo.currentItem
+    telegram_filter = @telegram_combo.currentItem
 
- 
-      if @git_combo.currentItem == 1 && student.git.nil?
-        match = false
-      elsif @git_combo.currentItem == 2 && !student.git.nil?
-        match = false
-      end
-
-   
-      if @email_combo.currentItem == 1 && student.email.nil?
-        match = false
-      elsif @email_combo.currentItem == 2 && !student.email.nil?
-        match = false
-      end
-
-
-      if @phone_combo.currentItem == 1 && student.phone.nil?
-        match = false
-      elsif @phone_combo.currentItem == 2 && !student.phone.nil?
-        match = false
-      end
-
-      if @telegram_combo.currentItem == 1 && student.telegram.nil?
-        match = false
-      elsif @telegram_combo.currentItem == 2 && !student.telegram.nil?
-        match = false
-      end
-
-      match
-    end
-
+    @students = @controller.filter_students(git_filter, email_filter, phone_filter, telegram_filter)
     @current_page = 0
 
+    # Устанавливаем параметры таблицы перед обновлением данных
     set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
 
     # Обновляем таблицу
@@ -325,12 +227,27 @@ class MainApp < FXMainWindow
     @email_combo.currentItem = 0
     @phone_combo.currentItem = 0
     @telegram_combo.currentItem = 0
+
+    @students = @original_students.dup
+
+    # Устанавливаем параметры таблицы перед обновлением данных
+    set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+
+    # Обновляем таблицу
+    update_table(@current_page)
   end
 
   def update_button_states
-    selected_row = @table.currentRow
-    if selected_row >= 0
+    selected_rows = []
+    (0...@table.numRows).each do |row|
+      selected_rows << row if @table.rowSelected?(row)
+    end
+
+    if selected_rows.size == 1
       @edit_button.enable
+      @delete_button.enable
+    elsif selected_rows.size > 1
+      @edit_button.disable
       @delete_button.enable
     else
       @edit_button.disable
@@ -364,7 +281,7 @@ class MainApp < FXMainWindow
     FXLabel.new(dialog_frame, "Telegram:")
     telegram_input = FXTextField.new(dialog_frame, 30)
 
-   
+    # Кнопки "ОК" и "Отмена"
     button_frame = FXHorizontalFrame.new(dialog_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
     ok_button = FXButton.new(button_frame, "ОК", nil, dialog, FXDialogBox::ID_ACCEPT, BUTTON_INITIAL | BUTTON_DEFAULT | FRAME_RAISED | FRAME_THICK | LAYOUT_RIGHT)
     cancel_button = FXButton.new(button_frame, "Отмена", nil, dialog, FXDialogBox::ID_CANCEL, BUTTON_DEFAULT | FRAME_RAISED | FRAME_THICK | LAYOUT_RIGHT)
@@ -373,11 +290,11 @@ class MainApp < FXMainWindow
       # Проверяем обязательные поля (Фамилия, Имя, Отчество)
       if surname_input.text.empty? || name_input.text.empty? || patronymic_input.text.empty?
         FXMessageBox.error(self, MBOX_OK, "Ошибка", "Фамилия, имя и отчество обязательны для заполнения.")
-        return  # Прерываем выполнение, если обязательные поля не заполнены
+        return
       end
 
-      new_student = Student.new(
-        id: @students.size + 1,  
+      # Создаем нового студента
+      student = Student.new(
         surname: surname_input.text,
         name: name_input.text,
         patronymic: patronymic_input.text,
@@ -387,119 +304,111 @@ class MainApp < FXMainWindow
         telegram: telegram_input.text.empty? ? nil : telegram_input.text
       )
 
-      save_student_to_db(new_student)
+      # Сохраняем студента в базу данных
+      @controller.save_student_to_db(student)
 
-      @students << new_student
+      # Обновляем список студентов
+      @students = @controller.students_list
       @original_students = @students.dup
 
-    
+      # Устанавливаем параметры таблицы перед обновлением данных
+      set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+
+      # Обновляем таблицу
       update_table(@current_page)
     end
   end
 
   def edit_student
-    selected_row = @table.currentRow
-    puts "Выбрана строка: #{selected_row}" 
-    return if selected_row < 0  
+    selected_row = @selected_row
+    puts "Selected row for editing: #{selected_row}"  # Debug print
+    return if selected_row < 0  # Если строка не выбрана, выходим
 
-    student_index = @current_page * 5 + selected_row
-    return if student_index >= @students.size  
-
-    student = @students[student_index]
-    puts "Редактируется студент: #{student.inspect}" 
+    student = @students[selected_row]
+    puts "Editing student: #{student.inspect}"  # Debug print
 
     dialog = FXDialogBox.new(self, "Редактировать студента", DECOR_TITLE | DECOR_BORDER)
     dialog_frame = FXVerticalFrame.new(dialog, LAYOUT_FILL_X | LAYOUT_FILL_Y)
 
+    # Поля для ввода данных
     FXLabel.new(dialog_frame, "Фамилия:")
-    surname_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
+    surname_input = FXTextField.new(dialog_frame, 30)
     surname_input.text = student.surname
 
     FXLabel.new(dialog_frame, "Имя:")
-    name_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
+    name_input = FXTextField.new(dialog_frame, 30)
     name_input.text = student.name
 
     FXLabel.new(dialog_frame, "Отчество:")
-    patronymic_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
+    patronymic_input = FXTextField.new(dialog_frame, 30)
     patronymic_input.text = student.patronymic
 
     FXLabel.new(dialog_frame, "Git:")
-    git_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
-    git_input.text = student.git || ""
+    git_input = FXTextField.new(dialog_frame, 30)
+    git_input.text = student.git
 
     FXLabel.new(dialog_frame, "Почта:")
-    email_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
-    email_input.text = student.email || ""
+    email_input = FXTextField.new(dialog_frame, 30)
+    email_input.text = student.email
 
     FXLabel.new(dialog_frame, "Телефон:")
-    phone_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
-    phone_input.text = student.phone || ""
+    phone_input = FXTextField.new(dialog_frame, 30)
+    phone_input.text = student.phone
 
     FXLabel.new(dialog_frame, "Telegram:")
-    telegram_input = FXTextField.new(dialog_frame, 30, nil, 0, TEXTFIELD_NORMAL)
-    telegram_input.text = student.telegram || ""
+    telegram_input = FXTextField.new(dialog_frame, 30)
+    telegram_input.text = student.telegram
 
+    # Кнопки "ОК" и "Отмена"
     button_frame = FXHorizontalFrame.new(dialog_frame, LAYOUT_FILL_X | PACK_UNIFORM_WIDTH)
     ok_button = FXButton.new(button_frame, "ОК", nil, dialog, FXDialogBox::ID_ACCEPT, BUTTON_INITIAL | BUTTON_DEFAULT | FRAME_RAISED | FRAME_THICK | LAYOUT_RIGHT)
     cancel_button = FXButton.new(button_frame, "Отмена", nil, dialog, FXDialogBox::ID_CANCEL, BUTTON_DEFAULT | FRAME_RAISED | FRAME_THICK | LAYOUT_RIGHT)
 
-    result = dialog.execute
-    puts "Диалог вернул: #{result}" 
+    if dialog.execute != 0
+      # Обновляем данные студента
+      student.surname = surname_input.text
+      student.name = name_input.text
+      student.patronymic = patronymic_input.text
+      student.git = git_input.text
 
-    if result != 0
-      if surname_input.text.strip.empty? || name_input.text.strip.empty? || patronymic_input.text.strip.empty?
-        FXMessageBox.error(self, MBOX_OK, "Ошибка", "Фамилия, имя и отчество обязательны.")
-        return
-      end
+      # Обновляем приватные поля через контроллер
+      @controller.update_student_field(student, 'email', email_input.text) unless email_input.text.empty?
+      @controller.update_student_field(student, 'phone', phone_input.text) unless phone_input.text.empty?
+      @controller.update_student_field(student, 'telegram', telegram_input.text) unless telegram_input.text.empty?
 
-  end
-      student.surname = surname_input.text.strip
-      student.name = name_input.text.strip
-      student.patronymic = patronymic_input.text.strip
-      student.git = git_input.text.strip.empty? ? nil : git_input.text.strip
-      student.email = email_input.text.strip.empty? ? nil : email_input.text.strip
-      student.phone = phone_input.text.strip.empty? ? nil : phone_input.text.strip
-      student.telegram = telegram_input.text.strip.empty? ? nil : telegram_input.text.strip
+      # Обновляем студента в базе данных
+      puts "Updating student in DB: #{student.inspect}"  # Debug print
+      @controller.update_student_in_db(student)
 
-      puts "Обновляем студента: #{student.inspect}" 
-      update_student_in_db(student)
-      refresh_students_list
+      # Обновляем список студентов
+      @students[selected_row] = student
+
+      # Устанавливаем параметры таблицы перед обновлением данных
+      set_table_params(['name', 'git', 'email', 'phone', 'telegram'], @students.size)
+
+      # Обновляем таблицу
+      update_table(@current_page)
     end
   end
 
   def delete_student
-    selected_row = @table.currentRow
-    puts "Выбрана строка для удаления: #{selected_row}" 
-    return if selected_row < 0  
+    selected_row = @selected_row
+    puts "Selected row for deletion: #{selected_row}"  # Debug print
+    return if selected_row < 0  # Если строка не выбрана, выходим
 
-    student_index = @current_page * 5 + selected_row
-    return if student_index >= @students.size  
+    student = @students[selected_row]
+    puts "Deleting student: #{student.inspect}"  # Debug print
 
-    student = @students[student_index]
-    puts "Удаляется студент: #{student.inspect}" 
+    # Удаляем студента из базы данных
+    @controller.delete_student_from_db(student.id)
 
-    confirm = FXMessageBox.question(self, MBOX_YES_NO, "Подтверждение", "Удалить студента #{student.surname} #{student.name}?")
-    return unless confirm == MBOX_CLICKED_YES
-
-    delete_student_from_db(student.id)
-    @students.delete_at(student_index)
-
-    puts "Студент удален. Обновленный список: #{@students.inspect}"
-
-    refresh_students_list
-  end
-
-  def refresh_students_list
-    puts "Обновление таблицы..." 
+    # Удаляем студента из массива студентов
+    @students.delete_at(selected_row)
+    # Обновляем таблицу
     update_table(@current_page)
-
+  end
   def create
     super
+    show(PLACEMENT_SCREEN)
   end
 end
-
-app = FXApp.new
-main_window = MainApp.new(app)
-main_window.show(PLACEMENT_SCREEN)
-app.create
-app.run
