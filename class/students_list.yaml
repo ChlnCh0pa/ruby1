@@ -1,7 +1,8 @@
----
-- :id: 1
-  :name: ''
-  :email: new_email@example.com
-  :phone: new_phone
-  :telegram: new_telegram
-  :git: new_git
+
+  - :id: 1
+    :surname: Shvili
+    :name: Artem
+    :patronymic: Tabrisovich
+    :git: github.com/Tabriiis
+    :contact: shvilitabris@example.com
+ 
