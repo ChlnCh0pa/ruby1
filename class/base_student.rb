@@ -1,13 +1,14 @@
 class BaseStudent
   attr_reader :id, :surname, :name, :patronymic, :git, :contact
 
-  def initialize(id: nil, surname:, name:, patronymic:, git:, contact: nil)
+  def initialize(id: nil, surname:, name:, patronymic:, git: nil, contact: nil)
+
     self.surname = surname
     self.name = name
     self.patronymic = patronymic
     self.git = git
     self.id = id if id
-    self.contact = contact if contact
+    @contact = contact || "Не указано"  # Исправлено здесь
   end
 
   def surname=(value)
@@ -30,17 +31,11 @@ class BaseStudent
     @id = value
   end
 
-  def git=(value)
-    raise ArgumentError, "Неверный Git: #{value}" unless BaseStudent.git_valid?(value)
-    @git = value
-  end
-
   def validate_name(field, value)
-    raise ArgumentError, "Неверное значение для #{field}: #{value}" unless BaseStudent.name_valid?(value)
+    raise ArgumentError, "Неверное значение для #{field}: #{value.inspect}" unless BaseStudent.name_valid?(value)
   end
 
   def surname_initials
-    # Добавим проверку на nil
     initials = "#{@surname} "
     initials += "#{@name[0] if @name}" if @name
     initials += ".#{@patronymic[0] if @patronymic}." if @patronymic
@@ -48,14 +43,21 @@ class BaseStudent
   end
 
   def self.name_valid?(name)
+    return false if name.nil?
     name.match?(/^[А-ЯЁA-Z][а-яёa-z-]+$/)
-  end
+  end  
 
   def self.id_valid?(id)
     id.to_s.match?(/^\d+$/)
   end
 
-  def self.git_valid?(git)
+  def git=(value)
+    raise 'Invalid GitHub URL' unless value.nil? || value.match?(/^github\.com\/[\w.-]+$/)
+    @git = value
+  end
+
+  def git_valid?
+    return false if git.nil?
     git.match?(/^github\.com\/[\w.-]+$/)
   end
 
@@ -79,3 +81,4 @@ class BaseStudent
     "#{@id} #{@surname} #{@name} #{@patronymic}(Contacts: Git: #{@git} Email: #{@contact || 'N/A'})"
   end
 end
+  
